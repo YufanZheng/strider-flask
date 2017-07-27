@@ -1,0 +1,13 @@
+spark-worker-name:
+  build: ./spark
+  command: spark/bin/spark-class org.apache.spark.deploy.worker.Worker spark://spark-master:7077
+  hostname: spark-worker-name
+  environment:
+    SPARK_WORKER_WEBUI_PORT: spark-worker-port
+  ports:
+    - spark-worker-port:spark-worker-port
+  expose:
+    - spark-worker-port
+  links:
+    - spark-master
+    - kafka

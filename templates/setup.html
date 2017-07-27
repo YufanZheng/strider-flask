@@ -1,0 +1,289 @@
+<!doctype html>
+
+<title>Strider | Setup</title>
+
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/bootstrap.theme.min.css') }}">
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/font-awesome.min.css') }}">
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/fileinput.min.css') }}">
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/page-header.css') }}">
+
+<style>
+.glyphicon-refresh-animate {
+    -animation: spin .7s infinite linear;
+    -webkit-animation: spin2 .7s infinite linear;
+}
+@-webkit-keyframes spin2 {
+    from { -webkit-transform: rotate(0deg);}
+    to { -webkit-transform: rotate(360deg);}
+}
+@keyframes spin {
+    from { transform: scale(1) rotate(0deg);}
+    to { transform: scale(1) rotate(360deg);}
+}
+</style>
+
+<nav class="navbar navbar-fixed-top navbar-inverse">
+  <div class="container">
+    <!-- Brand and toggle get grouped for better mobile display -->
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="/">Strider Platform</a>
+    </div>
+  </div><!-- /.container-fluid -->
+</nav>
+
+<!-- Content -->
+<div class="container" style="margin-top:60px">
+
+<!-- head -->
+<div class="header clearfix">
+    <nav>
+      <ul class="nav nav-pills pull-right">
+        <li role="presentation" class="active"><a data-toggle="tab" href="#deploy">Deploy Cluster</a></li>
+        <li role="presentation"><a data-toggle="tab" href="#upload">Upload Data</a></li>
+        <li role="presentation"><a data-toggle="tab" href="#query">Query</a></li>
+      </ul>
+    </nav>
+    <h3 class="text-muted">Setup a Project</h3>
+</div>
+
+<!-- main content -->
+<div class="tab-content">
+
+<!-- Panel for deploying a Docker cluster -->
+<div id="deploy" class="tab-pane fade in active">
+  <h3>Deploy Docker Cluster <a class="btn btn-info pull-right" data-toggle="modal" data-target="#settingsModal">Advanced Settings</a></h3>
+  <pre style="height: 400px; margin-top: 20px;" id="stdouts">
+  </pre>
+  <button class="btn btn-default" id="start_deploy"><span class="glyphicon glyphicon-play-circle"></span> Launch Containers</button>
+  <button class="btn btn-warning hide" id="in_deploying"><span class="glyphicon glyphicon-refresh glyphicon-refresh-animate"></span> Deploying ...</button>
+  <button class="btn btn-default" id="delete_containers" data-toggle="modal" data-target="#deleteConfirmModal"><span class="glyphicon glyphicon-trash"></span> Delete Containers</button>
+</div>
+
+<div id="upload" class="tab-pane fade">
+  <h3>Upload Datasets</h3>
+  <label class="control-label">Select File</label>
+  <input id="dataset_input" name="dataset_input" type="file" class="file" multiple/>
+</div>
+
+<div id="query" class="tab-pane fade">
+  <h3>
+    Strider RDF Stream Query
+    <div class="dropdown pull-right">
+      <button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">Use Default Query
+      <span class="caret"></span></button>
+      <ul class="dropdown-menu">
+        <li class="dropdown-header">Simple Query</li>
+        <li><a href="#">Query 1: Balabala Balabala Balabala Balabala</a></li>
+        <li><a href="#">Query 2: Bulubulu Bulubulu Bulubulu Bulubulu</a></li>
+        <li class="divider"></li>
+        <li class="dropdown-header">Complex Query</li>
+        <li><a href="#">Query 3: Biubiubiu Biubiubiu Biubiubiu Biubiubiu</a></li>
+      </ul>
+    </div>
+  </h3>
+  <div class="form-group">
+    <textarea class="form-control" style="height:300px; margin-top: 20px;"></textarea>
+  </div>
+  <button class="btn btn-success" id="execute_query" name="Strider Query">Save and Execute</button>
+  <button class="btn btn-default" id="kafka_consumer" name="Kafka Comsumer">Kafka Comsumer</button>
+  <button class="btn btn-default" id="kafka_producer" name="Kafka Producer">Kafka Producer</button>
+</div>
+</div>
+</div>
+
+<!-- Save Settings Modal -->
+<div class="modal fade" id="settingsModal" tabindex="-1" role="dialog" aria-labelledby="settingsModal">
+  <div class="modal-dialog modal-lg" role="form">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h3 class="modal-title" id="myModalLabel">Deployment Settings</h3>
+      </div>
+      <div class="modal-body">
+         <form id="settings">
+          <h4 style="margin-bottom: 15px;">Docker Configuration</h4>
+          <div class="form-group">
+            <label for="dckLoc">Docker Location:</label>
+            <input type="text" class="form-control" name="dckLoc" aria-describedby="docker installed Location" placeholder="Enter Docker local installed location" value="{{ Config.dckLoc }}">
+          </div>
+          <div class="form-group">
+            <label for="dckCmpsLoc">Docker Compose Location:</label>
+            <input type="text" class="form-control" name="dckCmpsLoc" aria-describedby="docker-compose installed Location" placeholder="Enter Docker Compose local installed location" value="{{ Config.dckCmpsLoc }}">
+          </div>
+          <hr/>
+          <h4 style="margin-bottom: 15px;">Spark Configuration</h4>
+          <div class="form-group">
+            <label for="numWorker">Number Spark Workers:</label>
+            <input type="number" class="form-control" name="numWorker" aria-describedby="Number Spark Workers" placeholder="Enter number of Spark Workers to be deployed" value="{{ Config.numWorker }}">
+          </div>
+          <hr/>
+          <h4 style="margin-bottom: 15px;">Kafka Configuration</h4>
+          <div class="form-group">
+            <label for="topic">Kafka Topic Name:</label>
+            <input type="text" class="form-control" name="topic" aria-describedby="Kafka Topic Name" placeholder="Enter the name of Kafka Topic" value="{{ Config.topic }}">
+          </div>
+          <div class="form-group">
+            <label for="partition">Kafka Partition Number:</label>
+            <input type="number" class="form-control" name="partition" aria-describedby="Kafka Partition" placeholder="Enter the number of Kafka Partition" value="{{ Config.partition }}">
+          </div>
+          <div class="form-group">
+            <label for="replication">Kafka Replication Factor:</label>
+            <input type="number" class="form-control" name="replication" aria-describedby="Kafka Replication Factor" placeholder="Enter Kafka Replication Factor" value="{{ Config.replication }}">
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+        <button type="submit" class="btn btn-primary" id="saveSettings">Save settings</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Confirm Modal -->
+<div class="modal fade" id="confirmModal" role="dialog">
+<div class="modal-dialog">
+  <!-- Modal content-->
+  <div class="modal-content">
+    <div class="modal-header">
+      <button type="button" class="close" data-dismiss="modal">&times;</button>
+      <h4 class="modal-title">Confirm Dialog</h4>
+    </div>
+    <div class="modal-body">
+      <p>Deployment settings have been saved.</p>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-default" data-dismiss="modal">OK</button>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- Delete Confirm Modal -->
+<div class="modal fade" id="deleteConfirmModal" role="dialog">
+<div class="modal-dialog">
+  <!-- Modal content-->
+  <div class="modal-content">
+    <div class="modal-header">
+      <button type="button" class="close" data-dismiss="modal">&times;</button>
+      <h4 class="modal-title">Warning: Are you sure to delete containers?</h4>
+    </div>
+    <div class="modal-body">
+      <form>
+        <label for="numWorker">Delete Containers with images?</label>
+        <div class="radio">
+          <label><input type="radio" name="delOption" value="withoutImage" checked/>Option 1: Delete only the containers but keep the images</label>
+        </div>
+        <div class="radio">
+          <label><input type="radio" name="delOption" value="withImage">Option 2: Delete containers as well as the coresponding images</label>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+      <button type="button" class="btn btn-danger" data-dismiss="modal">Delete</button>
+    </div>
+  </div>
+</div>
+</div>
+
+<script type="text/javascript" src="../static/js/jquery.min.js"></script>
+<script type="text/javascript" src="../static/js/fileinput.js"></script>
+<script type="text/javascript" src="../static/js/bootstrap.min.js"></script>
+<script type="text/javascript" src="../static/js/fa.js"></script>
+<script>
+    
+// Attach a submit handler to the save settings form
+$("#saveSettings").click(function(event){
+    
+    event.preventDefault();
+    
+    // Get Form Data
+    var form_data = new FormData();
+    $('#settings').serializeArray().reduce(function(obj, item) {
+        form_data.append( item.name, item.value );
+    }, {});
+    
+    // Send request
+    var xhr = new XMLHttpRequest();
+    xhr.open("POST", "saveSettings", true);
+    xhr.onreadystatechange = (event) => {
+      if (xhr.readyState == XMLHttpRequest.DONE) {
+          $('#settingsModal').modal('hide');
+          $('#confirmModal').modal();
+      }
+    }
+    xhr.send(form_data);
+});
+
+$("#start_deploy").click(function(event){
+    event.preventDefault();
+    $(this).addClass('hide');
+    $("#in_deploying").removeClass('hide');
+    $(this).siblings("button").prop('disabled', true);
+
+    var sse = new EventSource('/launch_containers');
+    $("#stdouts").text("");
+    sse.onmessage = function (msg) {
+        console.log(msg.data);
+        var data = {};
+        var new_line = "";
+        try{
+            data = jQuery.parseJSON( msg.data);
+            new_line = data["time"] + " : " + data["message"] + "\n";            
+        }catch(err) { // Catch json parse error
+            data["time"] = getFormattedDate();
+            data["message"] = msg.data.split('"message":"')[1].replace('"}', '');
+            new_line = data["time"] + " : " + data["message"] + "\n";  
+        }
+        text = $("#stdouts").text();
+        $('#stdouts').text(text + new_line);
+        if ( data["message"] === "Deploying process is finished") {
+            sse.close();
+            sse = null;
+            $("#start_deploy").removeClass('hide');
+            $("#in_deploying").addClass('hide');
+            $("#start_deploy").siblings("button").prop('disabled', false);
+        }
+    };
+});
+    
+// Upload dataset
+$("#dataset_input").fileinput({
+    uploadUrl: "upload_file", // server upload action
+    uploadAsync: true,
+    maxFileCount: 5
+});
+    
+// Button to launch program control
+$("#execute_query").click(function(){
+    openInNewTab('execute/Strider Query');
+});
+
+$("#kafka_consumer").click(function(){
+    openInNewTab('execute/Kafka Consumer');
+});
+
+$("#kafka_producer").click(function(){
+    openInNewTab('execute/Kafka Producer');
+});
+    
+function getFormattedDate() {
+    var date = new Date();
+    var str = date.getFullYear() + "-" + ((date.getMonth() < 9)?"0":"") + (date.getMonth() + 1) + "-" + date.getDate() + " " + ((date.getHours() < 10)?"0":"") + date.getHours() + ":" + ((date.getMinutes() < 10)?"0":"") + date.getMinutes() + ":" + ((date.getSeconds() < 10)?"0":"") + date.getSeconds();
+    return str;
+}
+
+function openInNewTab(url) {
+  var win = window.open(url, '_blank');
+  win.focus();
+}
+
+</script>

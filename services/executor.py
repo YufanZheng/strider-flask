@@ -12,7 +12,7 @@ class Executor():
         
     def kafka_consumer(self):
         # Get Spark Worker Container
-        container = self.getContainerByName("strider_spark-worker-1_1")
+        container = self.getContainerByName("strider_spark-master_1")
         
         # Extract the kafka configuration to cretae command
         command = """
@@ -24,6 +24,8 @@ class Executor():
                 {} 
                 {}
         """.format( Config.topic, Config.partition )
+        
+        print(command)
         
         for line in container.exec_run(command, stream=True):
             yield line.decode('utf-8')

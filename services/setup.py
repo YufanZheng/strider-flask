@@ -17,10 +17,16 @@ class SetUp():
         self.dataDir = self.directory + '/data'
         self.client = docker.from_env()
     
+    """
+        Launch Containers:
+            1. Docker compose to start containers
+            2. In Kafka container, create topic
+    """    
+    
     def launch_containers(self):
         
         yield "Start launching containers"
-        for line in self.docker_compose():
+        for line in self.docker_compose_up():
             yield line
 
         yield "Creating Kafka Topic {} at Kafka Container".format( Config.topic )
@@ -31,13 +37,41 @@ class SetUp():
         yield "Deploying process is finished"
 
     """
+        Stop Containers:
+            1. Docker compose to stop running containers
+    """    
+    
+    def stop_containers(self):
+        
+        yield "Stop running containers"
+        for line in self.docker_compose_stop():
+            yield line
+        
+        yield ""
+        yield "All containers have been stopped"
+
+    """
+        Delete Containers:
+            1. Docker compose to delete running containers
+    """    
+    
+    def delete_containers(self):
+        
+        yield "Delete containers"
+        for line in self.docker_compose_down():
+            yield line
+        
+        yield ""
+        yield "All containers have been removed"
+
+    """
         Docker Compose:
             1. Create an empty directory at /{user.home}/Documents/strider
             2. Copy strider Dockerfiles to strider directory
             3. Generate the docker-compose.yml file 
             4. Run "docker-compose up -d" command to create containers
     """    
-    def docker_compose(self):
+    def docker_compose_up(self):
 
         # Copy all the rest into strider path without "docker-compose.yml"
         # Strider path
@@ -146,6 +180,28 @@ class SetUp():
         for line in container.exec_run(command, stream=True):
             yield line.decode('utf-8')
 
+    """
+        Stop running containers:
+            1. Find the docker-compose file location
+            2. Docker compose stop
+    """
+    def docker_compose_stop(self):
+        # Execute command
+        command = Config.dckCmpsLoc + " -f " + self.directory + "/docker-compose.yml stop"
+        
+        return self.runProcess(command.split())
+
+    """
+        Stop running containers and delete images:
+            1. Find the docker-compose file location
+            2. Docker compose down
+    """
+    def docker_compose_down(self):
+        # Execute command
+        command = Config.dckCmpsLoc + " -f " + self.directory + "/docker-compose.yml down"
+        
+        return self.runProcess(command.split())
+    
     """
         Save Upload Files:
             1. Find the Kafka container by name

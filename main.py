@@ -22,7 +22,7 @@ def setup():
 @app.route('/execute/<appname>', methods=["POST", "GET"])
 def execute(appname):
     worker_ui = {}
-    for index in range(Config.numWorker):
+    for index in range(int(Config.numWorker)):
         worker_ui[str(index+1)] = """
             http://localhost:{}
         """.format( str(8081+index) )
@@ -50,6 +50,24 @@ def launch_containers():
                      
     return Response(
         stream( setup.launch_containers ),
+        mimetype='text/event-stream')
+
+@app.route('/stop_containers')
+def stop_containers():
+            
+    setup = SetUp()
+                     
+    return Response(
+        stream( setup.stop_containers ),
+        mimetype='text/event-stream')
+
+@app.route('/delete_containers')
+def delete_containers():
+            
+    setup = SetUp()
+                     
+    return Response(
+        stream( setup.delete_containers ),
         mimetype='text/event-stream')
     
 @app.route('/upload_file', methods=["POST", "GET"])

@@ -1,5 +1,5 @@
 spark-master:
-  build: ./spark
+  build: ./spark-master
   command: spark/bin/spark-class org.apache.spark.deploy.master.Master -h spark-master
   hostname: spark-master
   environment:

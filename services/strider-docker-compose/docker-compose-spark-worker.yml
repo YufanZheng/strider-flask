@@ -1,5 +1,5 @@
 spark-worker-name:
-  build: ./spark
+  build: ./spark-worker
   command: spark/bin/spark-class org.apache.spark.deploy.worker.Worker spark://spark-master:7077
   hostname: spark-worker-name
   environment:

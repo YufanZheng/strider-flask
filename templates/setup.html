@@ -63,7 +63,8 @@
   </pre>
   <button class="btn btn-default" id="start_deploy"><span class="glyphicon glyphicon-play-circle"></span> Launch Containers</button>
   <button class="btn btn-warning hide" id="in_deploying"><span class="glyphicon glyphicon-refresh glyphicon-refresh-animate"></span> Deploying ...</button>
-  <button class="btn btn-default" id="delete_containers" data-toggle="modal" data-target="#deleteConfirmModal"><span class="glyphicon glyphicon-trash"></span> Delete Containers</button>
+  <button class="btn btn-default" id="to_stop_containers" data-toggle="modal" data-target="#deleteConfirmModal"><span class="glyphicon glyphicon-trash"></span> Stop Containers</button>
+  <button class="btn btn-warning hide" id="in_stopping"><span class="glyphicon glyphicon-refresh glyphicon-refresh-animate"></span> Stopping ...</button>
 </div>
 
 <div id="upload" class="tab-pane fade">
@@ -177,18 +178,18 @@
     </div>
     <div class="modal-body">
       <form>
-        <label for="numWorker">Delete Containers with images?</label>
+        <label for="numWorker">Stop Containers and Delete them?</label>
         <div class="radio">
-          <label><input type="radio" name="delOption" value="withoutImage" checked/>Option 1: Delete only the containers but keep the images</label>
+          <label><input type="radio" name="delOption" value="stop" checked/>Option 1: Only stop the containers but keep them.</label>
         </div>
         <div class="radio">
-          <label><input type="radio" name="delOption" value="withImage">Option 2: Delete containers as well as the coresponding images</label>
+          <label><input type="radio" name="delOption" value="delete">Option 2: Stop and delete all the containers</label>
         </div>
       </form>
     </div>
     <div class="modal-footer">
       <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
-      <button type="button" class="btn btn-danger" data-dismiss="modal">Delete</button>
+      <button type="button" class="btn btn-danger" data-dismiss="modal" id="stop_containers">Delete</button>
     </div>
   </div>
 </div>
@@ -251,6 +252,42 @@ $("#start_deploy").click(function(event){
             $("#start_deploy").removeClass('hide');
             $("#in_deploying").addClass('hide');
             $("#start_deploy").siblings("button").prop('disabled', false);
+            $("#to_stop_containers").siblings("button").prop('disabled', false);
+        }
+    };
+});
+
+$("#stop_containers").click(function(event){
+    event.preventDefault();
+    $("#to_stop_containers").addClass('hide');
+    $("#in_stopping").removeClass('hide').prop('disabled', true);
+    $("#start_deploy").prop('disabled', true);
+    
+    option = $('input[name="delOption"]:checked').val();
+    
+    var sse = new EventSource( option + '_containers');
+    $("#stdouts").text("");
+    sse.onmessage = function (msg) {
+        console.log(msg.data);
+        var data = {};
+        var new_line = "";
+        try{
+            data = jQuery.parseJSON( msg.data);
+            new_line = data["time"] + " : " + data["message"] + "\n";            
+        }catch(err) { // Catch json parse error
+            data["time"] = getFormattedDate();
+            data["message"] = msg.data.split('"message":"')[1].replace('"}', '');
+            new_line = data["time"] + " : " + data["message"] + "\n";  
+        }
+        text = $("#stdouts").text();
+        $('#stdouts').text(text + new_line);
+        if ( data["message"] === "All containers have been stopped" ||
+             data["message"] === "All containers have been removed") {
+            sse.close();
+            sse = null;
+            $("#to_stop_containers").removeClass('hide');
+            $("#in_stopping").addClass('hide');
+            $("#start_deploy").prop('disabled', false);
         }
     };
 });

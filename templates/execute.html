@@ -19,6 +19,12 @@
       </button>
       <a class="navbar-brand" href="/">Strider Platform</a>
     </div>
+    <div class="collapse navbar-collapse">
+      <ul class="nav navbar-nav">
+        <li><a href="/setup" target="_blank">Project Setup</a></li>
+        <li class="active"><a href="/execute" target="_blank"> Execution <span class="sr-only">(current)</span></a></li>
+      </ul>
+    </div>
   </div><!-- /.container-fluid -->
 </nav>
 
@@ -41,10 +47,14 @@
 
 <!-- Panel for deploying a Docker cluster -->
 <div id="result" class="tab-pane fade in active">
-  <h3>Result for Running {{ appname }}</h3>
+  <h3>
+    Result
+    <div class="pull-right">
+      <button type="button" class="btn btn-default" id="run"><span class="glyphicon glyphicon-play"></span> Run</button>
+      <button type="button" class="btn btn-default" id="stop"><span class="glyphicon glyphicon-pause"></span> Stop</button>
+    </div>
+  </h3>
   <pre style="height: 400px; margin-top: 20px;" id="stdouts"></pre>
-  <button class="btn btn-success" id="run">Run {{ appname }}</button>
-  <button class="btn btn-default" id="stop">Stop Execution</button>
 </div>
 
 <!-- Panel for deploying a Docker cluster -->
@@ -69,7 +79,7 @@
 $("#run").click(function(){
     
     event.preventDefault();
-    var url = "/execute/" + "{{appname}}" + "/run";
+    var url = "/execute/run_strider";
     var sse = new EventSource(url);
     $("#stdouts").text("");
     sse.onmessage = function (msg) {

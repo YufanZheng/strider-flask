@@ -28,10 +28,6 @@ class SetUp():
         yield "Start launching containers"
         for line in self.docker_compose_up():
             yield line
-
-        yield "Creating Kafka Topic {} at Kafka Container".format( Config.topic )
-        for line in self.create_topic():
-            yield line
         
         yield ""
         yield "Deploying process is finished"
@@ -156,29 +152,6 @@ class SetUp():
                 return container
             
         return None
-    
-    """
-        Create Kafka Topic:
-            1. Find the Kafka container by name
-            2. Execute command in this container to create topic
-            3. Return streaming result
-    """
-    def create_topic(self):
-        
-        # Get Kafka Container
-        container = self.getContainerByName("strider_kafka_1")
-        
-        # Extract the kafka configuration to cretae command
-        command = """
-            kafka/bin/kafka-topics.sh 
-                --create --zookeeper 172.17.0.2:2181 
-                --replication-factor {}
-                --partitions {} 
-                --topic {}
-        """.format( Config.replication, Config.partition, Config.topic )
-        
-        for line in container.exec_run(command, stream=True):
-            yield line.decode('utf-8')
 
     """
         Stop running containers:
@@ -211,6 +184,8 @@ class SetUp():
     """
     def upload_file(self, file):
         filename, filepath = self.saveFile(file)
+        
+        Config.kafkaSrcFile = filename
         
         # Get Spark Worker Container
         container = self.getContainerByName("strider_spark-master_1")

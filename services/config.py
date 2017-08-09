@@ -6,5 +6,7 @@ class Config:
     topic = "S-1i"
     partition = 1
     replication = 1
+    streamRate = 1000
+    kafkaSrcFile = "lubm.nt"
     query = """
     """

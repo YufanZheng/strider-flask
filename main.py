@@ -3,6 +3,8 @@ from flask import render_template
 app = Flask(__name__)
 
 import datetime
+import json
+import os
 
 from services.setup import SetUp
 from services.config import Config
@@ -19,27 +21,34 @@ def index():
 def setup():
     return render_template('setup.html', Config = Config)
 
-@app.route('/execute/<appname>', methods=["POST", "GET"])
-def execute(appname):
+@app.route('/execute', methods=["POST", "GET"])
+def execute():
     worker_ui = {}
     for index in range(int(Config.numWorker)):
         worker_ui[str(index+1)] = """
             http://localhost:{}
         """.format( str(8081+index) )
-    return render_template('execute.html', appname = appname, worker_ui = worker_ui)
+    return render_template('execute.html', worker_ui = worker_ui)
 
 """
     Routes to trigger functions
 """
-@app.route('/saveSettings', methods=['POST'])
-def save_settings():
+@app.route('/save_deploy_settings', methods=['POST'])
+def save_deploy_settings():
     
     Config.dckLoc = request.form['dckLoc']
     Config.dckCmpsLoc = request.form['dckCmpsLoc']
     Config.numWorker = request.form['numWorker']
+    
+    return render_template('setup.html', Config = Config)
+
+@app.route('/save_kafka_settings', methods=['POST'])
+def save_kafka_settings():
+    
     Config.topic = request.form['topic']
     Config.partition = request.form['partition']
     Config.replication = request.form['replication']
+    Config.streamRate = request.form['streamRate']
     
     return render_template('setup.html', Config = Config)
 
@@ -78,22 +87,45 @@ def upload_file():
         setup.upload_file(file=file)
     return "{}"
 
-@app.route('/execute/<appname>/run')
-def run_app(appname):
+@app.route('/execute/run_strider')
+def run_strider():
     
     executor = Executor()
-    methodToRun = None
-    
-    if appname == "Kafka Producer":
-        methodToRun = executor.kafka_producer
-    elif appname == "Kafka Consumer":
-        methodToRun = executor.kafka_consumer
-    elif appname == "Strider Query":
-        methodToRun = executor.strider_query
         
     return Response(
-        stream(methodToRun),
+        stream(executor.strider_query),
         mimetype='text/event-stream')
+
+@app.route('/run_producer')
+def run_producer():
+    
+    executor = Executor()
+        
+    return Response(
+        stream(executor.run_producer),
+        mimetype='text/event-stream')
+
+@app.route('/import_query', methods=['POST'])
+def import_query():
+    
+    query_id = request.form['query_id'] 
+    
+    with open('{}/services/query/Query {}.txt'.format(os.getcwd(), query_id)) as file:
+        query = file.read()
+    
+    res = {}
+    res['query'] = query
+    
+    return json.dumps(res)
+
+@app.route('/save_query', methods=['POST'])
+def save_query():
+    
+    Config.query = request.form['query'] 
+    
+    print(Config.query)
+    
+    return '{}'
 
 # Stream the python yield result
 def stream(methodToRun):
